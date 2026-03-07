@@ -1,0 +1,453 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Home | InterviewPrep AI</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #4e73df, #1cc88a);
+            color: white;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            background: #e74a3b;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+
+        .container {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        h1 {
+            font-size: 44px;
+            margin-bottom: 10px;
+        }
+
+        .welcome {
+            font-size: 22px;
+            margin-bottom: 50px;
+            font-weight: 500;
+            opacity: 0.95;
+        }
+
+        .button-grid {
+            display: flex;
+            justify-content: center;
+            gap: 35px;
+            flex-wrap: wrap;
+        }
+
+        .card-btn {
+            background: white;
+            color: #333;
+            padding: 35px 30px;
+            width: 240px;
+            border-radius: 18px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: 0.3s ease;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .card-btn:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 45px rgba(0,0,0,0.35);
+        }
+
+        .icon {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .footer {
+            margin-top: 100px;
+            font-size: 14px;
+            opacity: 0.85;
+        }
+
+        @media(max-width: 768px){
+            .button-grid {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="navbar">
+    <div class="logo">🚀 InterviewPrep AI</div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<div class="container">
+
+    <h1>Welcome to Your Interview Platform</h1>
+
+    <div class="welcome" id="username">Loading user...</div>
+
+    <div class="button-grid">
+
+        <div class="card-btn" onclick="startTest()">
+            <div class="icon">📝</div>
+            Smart Test
+        </div>
+
+        <div class="card-btn" onclick="openDashboard()">
+            <div class="icon">📊</div>
+            Performance Dashboard
+        </div>
+
+        <div class="card-btn" onclick="downloadReport()">
+            <div class="icon">📄</div>
+            Download Report
+        </div>
+
+    </div>
+
+    <div class="footer">
+        AI Powered Multi-User Interview Practice System
+    </div>
+
+</div>
+
+<script>
+
+// =============================
+// AUTH CHECK
+// =============================
+const token = localStorage.getItem("token");
+
+if (!token) {
+    window.location.href = "/login-page";
+}
+
+// =============================
+// LOAD USER NAME
+// =============================
+async function loadUser() {
+
+    const res = await fetch("/me", {
+        headers: { "Authorization": "Bearer " + token }
+    });
+
+    if (!res.ok) {
+        logout();
+        return;
+    }
+
+    const user = await res.json();
+
+    document.getElementById("username").innerText =
+        "Hello, " + user.name.toUpperCase();
+}
+
+loadUser();
+
+
+// =============================
+// NAVIGATION
+// =============================
+function startTest() {
+    window.location.href = "/smart-test-page";
+}
+
+function openDashboard() {
+    window.location.href = "/dashboard";
+}
+
+function downloadReport() {
+    window.open("/download-report", "_blank");
+}
+
+
+// =============================
+// LOGOUT
+// =============================
+function logout() {
+    localStorage.removeItem("token");
+    window.location.href = "/login-page";
+}
+
+</script>
+
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Home | InterviewPrep AI</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #4e73df, #1cc88a);
+            color: white;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            background: #e74a3b;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+
+        .container {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        h1 {
+            font-size: 44px;
+            margin-bottom: 10px;
+        }
+
+        .welcome {
+            font-size: 22px;
+            margin-bottom: 50px;
+            font-weight: 500;
+            opacity: 0.95;
+        }
+
+        .button-grid {
+            display: flex;
+            justify-content: center;
+            gap: 35px;
+            flex-wrap: wrap;
+        }
+
+        .card-btn {
+            background: white;
+            color: #333;
+            padding: 35px 30px;
+            width: 240px;
+            border-radius: 18px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: 0.3s ease;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .card-btn:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 45px rgba(0,0,0,0.35);
+        }
+
+        .icon {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .footer {
+            margin-top: 100px;
+            font-size: 14px;
+            opacity: 0.85;
+        }
+
+        @media(max-width: 768px){
+            .button-grid {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="navbar">
+    <div class="logo">🚀 InterviewPrep AI</div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<div class="container">
+
+    <h1>Welcome to Your Interview Platform</h1>
+
+    <div class="welcome" id="username">Loading user...</div>
+
+    <div class="button-grid">
+
+        <div class="card-btn" onclick="startTest()">
+            <div class="icon">📝</div>
+            Smart Test
+        </div>
+
+        <div class="card-btn" onclick="openDashboard()">
+            <div class="icon">📊</div>
+            Performance Dashboard
+        </div>
+
+        <div class="card-btn" onclick="downloadReport()">
+            <div class="icon">📄</div>
+            Download Report
+        </div>
+
+    </div>
+
+    <div class="footer">
+        AI Powered Multi-User Interview Practice System
+    </div>
+
+</div>
+
+<script>
+
+// =============================
+// AUTH CHECK
+// =============================
+const token = localStorage.getItem("token");
+
+if (!token) {
+    window.location.href = "/login-page";
+}
+
+// =============================
+// LOAD USER NAME
+// =============================
+async function loadUser() {
+
+    const res = await fetch("/me", {
+        headers: { "Authorization": "Bearer " + token }
+    });
+
+    if (!res.ok) {
+        logout();
+        return;
+    }
+
+    const user = await res.json();
+
+    document.getElementById("username").innerText =
+        "Hello, " + user.name.toUpperCase();
+}
+
+loadUser();
+
+
+// =============================
+// NAVIGATION
+// =============================
+function startTest() {
+    window.location.href = "/smart-test-page";
+}
+
+function openDashboard() {
+    window.location.href = "/dashboard";
+}
+
+
+// =============================
+// SECURE DOWNLOAD REPORT
+// =============================
+async function downloadReport() {
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        window.location.href = "/login-page";
+        return;
+    }
+
+    // Default: Last 7 days
+    const today = new Date();
+    const past = new Date();
+    past.setDate(today.getDate() - 7);
+
+    const start = past.toISOString().split('T')[0];
+    const end = today.toISOString().split('T')[0];
+
+    try {
+        const response = await fetch(
+            `/download-report?start_date=${start}&end_date=${end}`,
+            {
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
+        if (!response.ok) {
+            alert("Failed to download report.");
+            return;
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "Interview_Report.pdf";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+    } catch (error) {
+        alert("Error downloading report.");
+    }
+}
+
+
+// =============================
+// LOGOUT
+// =============================
+function logout() {
+    localStorage.removeItem("token");
+    window.location.href = "/login-page";
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>InterviewPrep AI Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f6fa;
+            padding: 30px;
+            transition: 0.3s;
+        }
+
+        body.dark {
+            background: #12121c;
+            color: white;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 42px;
+            margin-bottom: 5px;
+        }
+
+        .username {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #007bff;
+        }
+
+        body.dark .username {
+            color: #4ea8ff;
+        }
+
+        .top-controls {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        input[type="date"] {
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .apply-btn { background: #007bff; color: white; }
+        .dark-toggle { background: #333; color: white; }
+        .pdf-btn { background: #28a745; color: white; }
+
+        .kpi-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 35px;
+        }
+
+        .kpi-card {
+            flex: 1;
+            min-width: 200px;
+            background: white;
+            padding: 25px;
+            border-radius: 14px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.07);
+            text-align: center;
+        }
+
+        body.dark .kpi-card {
+            background: #1f1f2f;
+        }
+
+        .kpi-title {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        .kpi-number {
+            font-size: 34px;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+
+        .positive { color: #4caf50; }
+        .negative { color: #f44336; }
+
+        .chart-row {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            flex: 1;
+            min-width: 350px;
+            background: white;
+            padding: 25px;
+            border-radius: 14px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.07);
+        }
+
+        body.dark .chart-container {
+            background: #1f1f2f;
+        }
+
+        canvas {
+            height: 380px !important;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        table th, table td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table th {
+            background: #f1f3f6;
+        }
+
+        body.dark table th {
+            background: #2a2a3d;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>📊 Performance Dashboard</h1>
+<div class="username" id="username"></div>
+
+<div class="top-controls">
+    <div>
+        From: <input type="date" id="startDate">
+        To: <input type="date" id="endDate">
+        <button class="apply-btn" onclick="loadDashboard()">Apply</button>
+    </div>
+
+    <div>
+        <button class="dark-toggle" onclick="toggleDark()">Dark Mode</button>
+        <button class="pdf-btn" onclick="downloadPDF()">Download PDF</button>
+    </div>
+</div>
+
+<div class="kpi-row">
+    <div class="kpi-card">
+        <div class="kpi-title">Total Attempts</div>
+        <div class="kpi-number" id="total">0</div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-title">Average Score</div>
+        <div class="kpi-number" id="avgScore">0</div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-title">Strong Answers</div>
+        <div class="kpi-number" id="strong">0</div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-title">Weak Answers</div>
+        <div class="kpi-number" id="weak">0</div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-title">Weekly Change</div>
+        <div class="kpi-number" id="weeklyChange">0%</div>
+    </div>
+</div>
+
+<div class="chart-row">
+    <div class="chart-container">
+        <h3 style="text-align:center;">Strong vs Weak</h3>
+        <canvas id="pieChart"></canvas>
+    </div>
+
+    <div class="chart-container">
+        <h3 style="text-align:center;">Category Weak %</h3>
+        <canvas id="barChart"></canvas>
+    </div>
+</div>
+
+<div class="chart-container">
+    <h3 style="text-align:center;">Score Trend</h3>
+    <canvas id="lineChart"></canvas>
+</div>
+
+<div class="chart-container">
+    <h3>Recent Attempts</h3>
+    <table id="attemptTable">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Question</th>
+                <th>Score</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script>
+
+let pieChart, barChart, lineChart;
+
+function toggleDark() {
+    document.body.classList.toggle("dark");
+}
+
+// function downloadPDF() {
+//     const start = document.getElementById("startDate").value;
+//     const end = document.getElementById("endDate").value;
+//     window.open(`/download-report?start_date=${start}&end_date=${end}`, "_blank");
+// }
+
+async function downloadPDF() {
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        window.location.href = "/login-page";
+        return;
+    }
+
+    const start = document.getElementById("startDate").value;
+    const end = document.getElementById("endDate").value;
+
+    const response = await fetch(
+        `/download-report?start_date=${start}&end_date=${end}`,
+        {
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        }
+    );
+
+    if (!response.ok) {
+        alert("Failed to download report");
+        return;
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "Interview_Report.pdf";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+}
+
+
+function setDefaultDates() {
+    const today = new Date();
+    const past = new Date();
+    past.setDate(today.getDate() - 7);
+
+    document.getElementById("endDate").value = today.toISOString().split('T')[0];
+    document.getElementById("startDate").value = past.toISOString().split('T')[0];
+}
+
+async function loadDashboard() {
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+        window.location.href = "/login-page";
+        return;
+    }
+
+    const headers = { "Authorization": "Bearer " + token };
+
+    const start = document.getElementById("startDate").value;
+    const end = document.getElementById("endDate").value;
+
+    // USER
+    const userRes = await fetch("/me", { headers });
+    const userData = await userRes.json();
+    document.getElementById("username").innerText =
+        "WELCOME " + userData.name.toUpperCase();
+
+    // PERFORMANCE
+    const perfRes = await fetch(
+        `/performance-summary?start_date=${start}&end_date=${end}`,
+        { headers }
+    );
+    const perfData = await perfRes.json();
+
+    document.getElementById("total").innerText = perfData.total_attempts || 0;
+    document.getElementById("strong").innerText = perfData.strong_answers || 0;
+    document.getElementById("weak").innerText = perfData.weak_answers || 0;
+    document.getElementById("avgScore").innerText =
+        perfData.average_score ? perfData.average_score.toFixed(2) : 0;
+
+    let change = perfData.weekly_change_percent || 0;
+    let weeklyEl = document.getElementById("weeklyChange");
+
+    if (change >= 0) {
+        weeklyEl.className = "kpi-number positive";
+        weeklyEl.innerText = "↑ " + change + "%";
+    } else {
+        weeklyEl.className = "kpi-number negative";
+        weeklyEl.innerText = "↓ " + Math.abs(change) + "%";
+    }
+
+    // PIE
+    if (pieChart) pieChart.destroy();
+    pieChart = new Chart(document.getElementById("pieChart"), {
+        type: "doughnut",
+        data: {
+            labels: ["Strong", "Weak"],
+            datasets: [{
+                data: [perfData.strong_answers, perfData.weak_answers],
+                backgroundColor: ["#4caf50", "#f44336"]
+            }]
+        }
+    });
+
+    // CATEGORY
+    // const catRes = await fetch("/category-summary", { headers });
+    const catRes = await fetch(
+        `/category-summary?start_date=${start}&end_date=${end}`,
+        { headers }
+    );
+    const catData = await catRes.json();
+
+    if (barChart) barChart.destroy();
+    barChart = new Chart(document.getElementById("barChart"), {
+        type: "bar",
+        data: {
+            labels: catData.map(c => c.category),
+            datasets: [{
+                label: "Weak %",
+                data: catData.map(c => c.weak_percentage),
+                backgroundColor: "#ff9800"
+            }]
+        },
+        options: {
+            scales: { y: { beginAtZero: true, max: 100 } }
+        }
+    });
+
+    // TREND
+    const sorted = (perfData.details || []).sort(
+        (a,b)=> new Date(a.attempted_at) - new Date(b.attempted_at)
+    );
+
+    if (lineChart) lineChart.destroy();
+    lineChart = new Chart(document.getElementById("lineChart"), {
+        type: "line",
+        data: {
+            labels: sorted.map(a =>
+                new Date(a.attempted_at).toLocaleDateString()
+            ),
+            datasets: [{
+                label: "Score",
+                data: sorted.map(a => a.score),
+                borderColor: "#2196f3",
+                fill: false,
+                tension: 0.3
+            }]
+        },
+        options: {
+            scales: { y: { beginAtZero: true, max: 10 } }
+        }
+    });
+
+    // TABLE
+    const tbody = document.querySelector("#attemptTable tbody");
+    tbody.innerHTML = "";
+
+    sorted.slice(-5).reverse().forEach((a, i) => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${i+1}</td>
+                <td>${a.question_text}</td>
+                <td>${a.score}</td>
+                <td>${a.is_weak ? "Weak" : "Strong"}</td>
+            </tr>
+        `;
+    });
+}
+
+setDefaultDates();
+loadDashboard();
+
+</script>
+
+</body>
+</html>

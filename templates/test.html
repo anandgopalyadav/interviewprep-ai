@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Interview Test</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+            transition: 0.3s;
+            background: #f4f6f9;
+            color: #000;
+        }
+
+        body.dark {
+            background: #121212;
+            color: #fff;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        body.dark .card {
+            background: #1e1e1e;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            margin-top: 10px;
+            padding: 10px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            margin-right: 10px;
+        }
+
+        .primary-btn {
+            background: #007bff;
+            color: white;
+        }
+
+        .secondary-btn {
+            background: #555;
+            color: white;
+        }
+
+        #loading {
+            display: none;
+            font-weight: bold;
+            color: orange;
+            margin-top: 15px;
+        }
+
+        #resultSection {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .good { color: #28a745; }
+        .bad { color: #dc3545; }
+
+        #timer {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<h1>🚀 Smart AI Interview Test</h1>
+
+<div class="top-bar">
+    <div id="timer">⏳ 30:00</div>
+    <button class="secondary-btn" onclick="toggleDarkMode()">🌙 Dark Mode</button>
+</div>
+
+<div id="questionContainer"></div>
+
+<div style="text-align:center; margin-top:30px;">
+    <button id="submitBtn" class="primary-btn" onclick="submitTest()">Submit Full Test</button>
+    <div id="loading">⏳ Evaluating... Please wait...</div>
+</div>
+
+<div id="resultSection" class="card"></div>
+
+<script>
+
+/* ================= AUTH CHECK ================= */
+const token = localStorage.getItem("token");
+if (!token) {
+    window.location.href = "/login-page";
+}
+
+/* ================= VARIABLES ================= */
+let questions = [];
+let totalSeconds = 1800; // 30 minutes
+let timerInterval;
+
+/* ================= TIMER ================= */
+function startTimer() {
+    const timerDisplay = document.getElementById("timer");
+
+    timerInterval = setInterval(() => {
+
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+
+        timerDisplay.innerText =
+            "⏳ " + String(minutes).padStart(2, '0') + ":" +
+            String(seconds).padStart(2, '0');
+
+        if (totalSeconds <= 0) {
+            clearInterval(timerInterval);
+            alert("Time is up! Submitting test automatically.");
+            submitTest();
+        }
+
+        totalSeconds--;
+
+    }, 1000);
+}
+
+/* ================= DARK MODE ================= */
+function toggleDarkMode() {
+    document.body.classList.toggle("dark");
+}
+
+/* ================= LOAD TEST ================= */
+async function loadTest() {
+
+    const res = await fetch("/smart-test", {
+        headers: { "Authorization": "Bearer " + token }
+    });
+
+    if (!res.ok) {
+        alert("Session expired. Please login again.");
+        localStorage.removeItem("token");
+        window.location.href = "/login-page";
+        return;
+    }
+
+    questions = await res.json();
+
+    const container = document.getElementById("questionContainer");
+    container.innerHTML = "";
+
+    questions.forEach((q, index) => {
+        container.innerHTML += `
+            <div class="card">
+                <h3>Question ${index + 1} (${q.category})</h3>
+                <p>${q.question_text}</p>
+                <textarea id="answer_${q.id}" placeholder="Write your answer here..."></textarea>
+            </div>
+        `;
+    });
+
+    startTimer();
+}
+
+/* ================= SUBMIT TEST ================= */
+async function submitTest() {
+
+    const submitBtn = document.getElementById("submitBtn");
+    const loading = document.getElementById("loading");
+
+    if (submitBtn.disabled) return;
+
+    clearInterval(timerInterval);
+
+    submitBtn.disabled = true;
+    loading.style.display = "block";
+
+    const answerPayload = questions.map(q => ({
+        question_id: q.id,
+        user_answer: document.getElementById("answer_" + q.id).value || ""
+    }));
+
+    const res = await fetch("/submit-test", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify(answerPayload)
+    });
+
+    const result = await res.json();
+
+    loading.style.display = "none";
+
+    const resultSection = document.getElementById("resultSection");
+    resultSection.style.display = "block";
+
+    resultSection.innerHTML = `
+        <h2>✅ Test Completed</h2>
+        <h3>Total Score: ${result.total_score}</h3>
+        <h3>Average Score: ${result.average_score}</h3>
+        <h4>Strong: ${result.strong_answers}</h4>
+        <h4>Weak: ${result.weak_answers}</h4>
+        <hr>
+    `;
+
+    result.results.forEach((r, i) => {
+        const cls = r.score > 5 ? "good" : "bad";
+        resultSection.innerHTML += `
+            <p><strong>Q${i+1} Score:</strong> 
+            <span class="${cls}">${r.score}/10</span></p>
+            <p><strong>Feedback:</strong> ${r.feedback}</p>
+            <hr>
+        `;
+    });
+
+    resultSection.innerHTML += `
+        <div style="text-align:center; margin-top:20px;">
+            <button class="secondary-btn" onclick="restartTest()">🔁 Take Test Again</button>
+        </div>
+    `;
+}
+
+/* ================= RESTART ================= */
+function restartTest() {
+    location.reload();
+}
+
+/* ================= INIT ================= */
+loadTest();
+
+</script>
+
+</body>
+</html>
