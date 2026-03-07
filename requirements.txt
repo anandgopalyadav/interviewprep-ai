@@ -1,7 +1,10 @@
-pip install fastapi uvicorn requests beautifulsoup4 sqlalchemy psycopg2-binary python-dotenv openai
 fastapi
 uvicorn
+requests
+beautifulsoup4
 sqlalchemy
+psycopg2-binary
+python-dotenv
 passlib
 python-jose
 reportlab
