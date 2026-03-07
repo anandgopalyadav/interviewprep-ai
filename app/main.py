@@ -134,6 +134,55 @@ def read_users_me(current_user: models.User = Depends(get_current_user)):
 # =============================
 # SMART TEST
 # =============================
+# @app.get("/smart-test")
+# def smart_test(db: Session = Depends(get_db),
+#                current_user: models.User = Depends(get_current_user)):
+
+#     distribution = {
+#         "Python": 2,
+#         "SQL": 2,
+#         "Data Analysis": 2,
+#         "Machine Learning": 2,
+#         "ETL": 1,
+#         "HR": 1
+#     }
+
+#     final_questions = []
+
+#     for category, count in distribution.items():
+
+#         db_questions = db.query(models.Question).filter(
+#             models.Question.category == category
+#         ).all()
+
+#         if len(db_questions) >= count:
+#             final_questions.extend(random.sample(db_questions, count))
+#         else:
+#             needed = count - len(db_questions)
+
+#             generated = generate_questions(category, "Medium", needed)
+
+#             for q in generated:
+#                 new_q = models.Question(
+#                     question_text=q["question_text"],
+#                     category=q["category"],
+#                     difficulty=q["difficulty"],
+#                     source="AI"
+#                 )
+#                 db.add(new_q)
+#                 db.commit()
+#                 db.refresh(new_q)
+#                 final_questions.append(new_q)
+
+#             final_questions.extend(db_questions)
+
+#     random.shuffle(final_questions)
+#     return final_questions
+
+
+# =============================
+# SMART TEST
+# =============================
 @app.get("/smart-test")
 def smart_test(db: Session = Depends(get_db),
                current_user: models.User = Depends(get_current_user)):
@@ -157,27 +206,26 @@ def smart_test(db: Session = Depends(get_db),
 
         if len(db_questions) >= count:
             final_questions.extend(random.sample(db_questions, count))
+
         else:
             needed = count - len(db_questions)
 
-            generated = generate_questions(category, "Medium", needed)
+            # FIX: pass db into generator
+            generated = generate_questions(category, "Medium", db, needed)
 
-            for q in generated:
-                new_q = models.Question(
-                    question_text=q["question_text"],
-                    category=q["category"],
-                    difficulty=q["difficulty"],
-                    source="AI"
-                )
-                db.add(new_q)
-                db.commit()
-                db.refresh(new_q)
-                final_questions.append(new_q)
+            # Fetch newly generated questions from DB
+            new_questions = db.query(models.Question).filter(
+                models.Question.category == category
+            ).order_by(models.Question.created_at.desc()).limit(needed).all()
 
+            final_questions.extend(new_questions)
             final_questions.extend(db_questions)
 
     random.shuffle(final_questions)
+
     return final_questions
+
+
 
 
 # =============================
