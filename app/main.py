@@ -223,7 +223,7 @@ def smart_test(db: Session = Depends(get_db),
 
     random.shuffle(final_questions)
 
-    return final_questions
+    return final_questions 
 
 
 
