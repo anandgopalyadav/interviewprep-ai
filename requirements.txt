@@ -11,3 +11,4 @@ reportlab
 openai
 jinja2
 python-multipart
+email-validator
