@@ -210,7 +210,7 @@ Benefits:
 ## Backend
 
 - FastAPI
-- SQLAlchemy
+- Postgresql
 - SQLite
 - JWT Authentication
 - Ollama (Local LLM)
