@@ -221,8 +221,6 @@ Benefits:
 
 - HTML
 - CSS
-- JavaScript
-- Chart.js
 
 ---
 
